@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick List (Beta)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #F5F0E8;
+    --warm-white: #FDFAF5;
+    --ink: #1C1A16;
+    --ink-light: #4A4640;
+    --ink-muted: #8C877D;
+    --sage: #6B8F71;
+    --sage-light: #EAF0EB;
+    --terracotta: #C4623A;
+    --terracotta-light: #F8EDE8;
+    --gold: #C9983A;
+    --gold-light: #FBF4E4;
+    --border: #E2DDD5;
+    --shadow-sm: 0 1px 3px rgba(28,26,22,0.08);
+    --shadow-md: 0 4px 16px rgba(28,26,22,0.10);
+    --shadow-lg: 0 12px 40px rgba(28,26,22,0.14);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .app { display: grid; grid-template-columns: 380px 1fr; min-height: 100vh; }
+
+  /* ─── LEFT PANEL ─── */
+  .panel-left {
+    background: var(--warm-white);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .panel-left::-webkit-scrollbar { width: 3px; }
+  .panel-left::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .logo-area {
+    padding: 28px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem; font-weight: 700;
+    color: var(--ink); letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--sage); font-style: italic; }
+  .tagline { font-size: 0.78rem; color: var(--ink-muted); margin-top: 4px; }
+
+  /* ─── COLLAPSIBLE PANELS ─── */
+  .collapsible-header {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none;
+  }
+  .collapsible-header:hover .collapse-chevron { color: var(--ink); }
+  .collapse-chevron {
+    width: 18px; height: 18px; color: var(--ink-muted);
+    transition: transform 0.22s ease, color 0.15s;
+    flex-shrink: 0;
+  }
+  .collapsible-body {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.28s ease, opacity 0.22s ease, margin-top 0.22s ease;
+    margin-top: 0;
+  }
+  .collapsible-body.open {
+    max-height: 200px;
+    opacity: 1;
+    margin-top: 10px;
+  }
+  .collapsible-header.open .collapse-chevron { transform: rotate(180deg); }
+
+  .prefs-area {
+    padding: 13px 28px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .section-label {
+    font-size: 0.7rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-muted); margin-bottom: 10px;
+  }
+  .pref-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    padding: 5px 12px; border-radius: 20px;
+    border: 1.5px solid var(--border);
+    font-size: 0.75rem; font-weight: 500;
+    cursor: pointer; transition: all 0.18s;
+    background: transparent; color: var(--ink-light); white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--sage); color: var(--sage); }
+  .chip.active { background: var(--sage); border-color: var(--sage); color: white; }
+  .chip.terracotta.active { background: var(--terracotta); border-color: var(--terracotta); }
+  .chip.gold.active { background: var(--gold); border-color: var(--gold); }
+
+  /* ─── INPUT SECTION ─── */
+  .input-section {
+    padding: 16px 28px 0;
+    flex-shrink: 0;
+  }
+  .intro-text {
+    font-size: 0.75rem; color: var(--ink-muted); font-weight: 500;
+    line-height: 1.5; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .intro-text::before, .intro-text::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .input-wrap {
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    transition: border-color 0.2s;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .input-wrap:focus-within { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(107,143,113,0.1); }
+  .input-wrap textarea {
+    background: transparent; border: none; outline: none;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    color: var(--ink); resize: none; min-height: 80px; line-height: 1.5;
+  }
+  .input-wrap textarea::placeholder { color: var(--ink-muted); }
+  .input-actions { display: flex; justify-content: space-between; align-items: center; }
+  .char-count { font-size: 0.72rem; color: var(--ink-muted); }
+  .send-btn {
+    background: var(--sage); color: white; border: none;
+    border-radius: var(--radius-sm); padding: 9px 20px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.18s;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .send-btn:hover { background: #5A7A60; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .send-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* generating bar */
+  .generating-bar {
+    display: none; align-items: center; gap: 10px;
+    padding: 10px 13px; background: var(--sage-light);
+    border-radius: var(--radius-sm); margin-top: 10px;
+    font-size: 0.82rem; color: var(--sage); font-weight: 500;
+  }
+  .generating-bar.visible { display: flex; }
+  .gen-dots { display: flex; gap: 4px; }
+  .gen-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--sage); animation: bounce 1.2s infinite;
+  }
+  .gen-dot:nth-child(2) { animation-delay: 0.2s; }
+  .gen-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%,80%,100% { transform: scale(0.7); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ─── QUICK PROMPTS ─── */
+  .quick-prompts {
+    padding: 13px 28px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .quick-list { display: flex; flex-direction: row; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .quick-btn {
+    text-align: left; background: var(--gold-light);
+    border: 1px solid #E8D9B8; border-radius: 20px;
+    padding: 7px 13px; font-size: 0.78rem;
+    font-family: 'DM Sans', sans-serif; color: var(--ink);
+    cursor: pointer; transition: all 0.18s;
+    display: inline-flex; align-items: center; gap: 6px;
+    width: auto; white-space: nowrap;
+  }
+  .quick-btn:hover { background: #F5E9CC; border-color: var(--gold); }
+  .quick-btn .qb-icon { font-size: 0.9rem; flex-shrink: 0; }
+
+  /* ─── SAVED LISTS ─── */
+  .saved-panel {
+    padding: 20px 28px 28px;
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .saved-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .view-all-link {
+    font-size: 0.72rem; font-weight: 600; color: var(--sage);
+    cursor: pointer; background: none; border: none;
+    font-family: 'DM Sans', sans-serif; padding: 0;
+    text-decoration: underline; text-underline-offset: 2px;
+    transition: color 0.15s;
+  }
+  .view-all-link:hover { color: #5A7A60; }
+  .saved-list { display: flex; flex-direction: column; gap: 7px; margin-top: 0; }
+  .saved-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 11px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); cursor: pointer;
+    transition: all 0.18s; background: var(--cream);
+  }
+  .saved-item:hover { border-color: var(--sage); background: var(--sage-light); }
+  .saved-item-icon { font-size: 1.1rem; }
+  .saved-item-info { flex: 1; min-width: 0; }
+  .saved-item-name { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .saved-item-meta { font-size: 0.7rem; color: var(--ink-muted); }
+  .saved-item-count {
+    font-size: 0.7rem; font-weight: 600;
+    background: var(--border); border-radius: 20px;
+    padding: 2px 8px; color: var(--ink-muted); flex-shrink: 0;
+  }
+
+  /* ─── RIGHT PANEL ─── */
+  .panel-right { padding: 32px 36px; overflow-y: auto; }
+  .panel-right::-webkit-scrollbar { width: 5px; }
+  .panel-right::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+
+  .top-bar {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 14px;
+  }
+  .list-title {
+    font-family: 'Playfair Display', serif; font-size: 1.9rem;
+    font-weight: 700; letter-spacing: -0.02em; line-height: 1.15;
+  }
+  .list-meta {
+    font-size: 0.8rem; color: var(--ink-muted); margin-top: 5px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .meta-pill {
+    background: var(--sage-light); color: var(--sage);
+    font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 20px;
+  }
+  .meta-pill.gold { background: var(--gold-light); color: var(--gold); }
+
+  .action-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; border-radius: var(--radius-sm); padding: 10px 18px;
+    transition: all 0.18s; display: flex; align-items: center; gap: 7px; white-space: nowrap;
+  }
+  .btn-primary { background: var(--sage); color: white; border: 2px solid var(--sage); }
+  .btn-primary:hover { background: #5A7A60; border-color: #5A7A60; transform: translateY(-1px); }
+  .btn-outline { background: transparent; color: var(--ink); border: 2px solid var(--border); }
+  .btn-outline:hover { border-color: var(--ink-light); background: var(--cream); }
+
+  .estimate-bar {
+    background: var(--warm-white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 24px;
+    display: flex; justify-content: space-around; align-items: center;
+    margin-bottom: 28px; box-shadow: var(--shadow-sm);
+  }
+  .est-col { text-align: center; }
+  .est-num { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; }
+  .est-label { font-size: 0.72rem; color: var(--ink-muted); font-weight: 500; margin-top: 2px; }
+  .est-divider { width: 1px; height: 36px; background: var(--border); }
+
+  /* ─── CATEGORIES & TILES ─── */
+  .category-section { margin-bottom: 32px; }
+  .cat-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .cat-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .cat-name { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 500; }
+  .cat-count {
+    font-size: 0.72rem; font-weight: 600; color: var(--ink-muted);
+    background: var(--cream); border: 1px solid var(--border);
+    border-radius: 20px; padding: 2px 9px; margin-left: auto;
+  }
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .product-tile {
+    background: var(--warm-white); border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 14px;
+    position: relative; transition: all 0.22s ease;
+    animation: fadeIn 0.3s ease both;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.97) translateY(6px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .product-tile:hover { border-color: var(--sage); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .product-tile.in-basket { border-color: var(--sage); background: var(--sage-light); }
+  .tile-emoji { font-size: 2rem; display: block; margin-bottom: 10px; line-height: 1; }
+  .tile-name { font-size: 0.85rem; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+  .tile-detail { font-size: 0.72rem; color: var(--ink-muted); line-height: 1.4; }
+  .tile-price { font-size: 0.8rem; font-weight: 600; color: var(--sage); margin-top: 8px; }
+  .tile-qty-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; margin-bottom: 10px; }
+  .qty-btn {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1.5px solid var(--border); background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.85rem; font-weight: 700;
+    color: var(--ink-light); transition: all 0.15s; flex-shrink: 0;
+  }
+  .qty-btn:hover { border-color: var(--sage); color: var(--sage); background: var(--sage-light); }
+  .qty-num { font-size: 0.82rem; font-weight: 600; min-width: 20px; text-align: center; }
+  .tile-add-btn {
+    width: 100%; padding: 7px 0;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border); background: white;
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 600;
+    color: var(--ink-light); font-family: 'DM Sans', sans-serif;
+    transition: all 0.18s;
+  }
+  .tile-add-btn:hover { background: var(--sage); border-color: var(--sage); color: white; }
+  .product-tile.in-basket .tile-add-btn { background: var(--sage); border-color: var(--sage); color: white; }
+  .tile-remove-btn {
+    position: absolute; top: 10px; right: 10px;
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid transparent; background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.18s;
+    opacity: 0; color: var(--ink-muted);
+    font-size: 0.7rem; font-weight: 700; line-height: 1;
+  }
+  .product-tile:hover .tile-remove-btn { opacity: 1; }
+  .tile-remove-btn:hover {
+    background: #FDECEA; border-color: #E8A09A; color: #C0392B;
+  }
+  .product-tile.removing {
+    animation: tileRemove 0.28s ease forwards;
+  }
+  @keyframes tileRemove {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.88); }
+  }
+  .tile-swap-btn {
+    display: block; width: 100%; margin-top: 6px;
+    background: transparent; color: var(--terracotta);
+    border: 1px solid #E8C4B4; border-radius: 6px;
+    padding: 5px 9px; font-size: 0.68rem; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s; opacity: 0; text-align: center;
+  }
+  .product-tile:hover .tile-swap-btn { opacity: 1; }
+  .tile-swap-btn:hover { background: var(--terracotta-light); border-color: var(--terracotta); }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    height: 65vh; text-align: center; gap: 16px;
+  }
+  .empty-illustration { font-size: 5rem; line-height: 1; opacity: 0.45; }
+  .empty-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .empty-sub { font-size: 0.88rem; color: var(--ink-muted); max-width: 300px; line-height: 1.6; }
+
+  /* ─── SWAP SIDEBAR ─── */
+  .swap-overlay {
+    position: fixed; inset: 0;
+    background: rgba(28,26,22,0.28);
+    z-index: 300;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .swap-overlay.open { opacity: 1; pointer-events: all; }
+  .swap-sidebar {
+    position: fixed;
+    top: 50%; right: 0;
+    transform: translateX(100%) translateY(-50%);
+    width: 360px;
+    max-height: 82vh;
+    background: var(--warm-white);
+    box-shadow: -6px 0 40px rgba(28,26,22,0.18);
+    border-radius: var(--radius) 0 0 var(--radius);
+    z-index: 301; display: flex; flex-direction: column;
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow: hidden;
+  }
+  .swap-overlay.open .swap-sidebar { transform: translateX(0) translateY(-50%); }
+
+  .swap-header {
+    padding: 22px 22px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    flex-shrink: 0;
+  }
+  .swap-header-label {
+    font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-muted); margin-bottom: 10px;
+  }
+  .swap-original {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--terracotta-light); border: 1px solid #E8C4B4;
+    border-radius: var(--radius-sm); padding: 11px 14px;
+  }
+  .swap-orig-emoji { font-size: 1.8rem; }
+  .swap-orig-name { font-size: 0.92rem; font-weight: 600; }
+  .swap-orig-detail { font-size: 0.75rem; color: var(--ink-muted); margin-top: 2px; }
+  .swap-close-btn {
+    background: var(--cream); border: 1px solid var(--border);
+    border-radius: 50%; width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1rem; color: var(--ink-muted);
+    transition: all 0.15s; flex-shrink: 0; margin-top: 2px;
+  }
+  .swap-close-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
+
+  .swap-body { flex: 1; overflow-y: auto; padding: 20px 22px; }
+  .swap-body::-webkit-scrollbar { width: 3px; }
+  .swap-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .swap-reason {
+    font-size: 0.8rem; color: var(--ink-light); line-height: 1.5;
+    padding: 10px 13px; background: var(--sage-light);
+    border-radius: var(--radius-sm); border-left: 3px solid var(--sage);
+    margin-bottom: 18px;
+  }
+  .swap-alts-label {
+    font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-muted); margin-bottom: 12px;
+  }
+
+  .alt-card {
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    padding: 14px; margin-bottom: 10px;
+    cursor: pointer; transition: all 0.2s ease;
+    background: var(--cream);
+    display: flex; align-items: center; gap: 13px;
+  }
+  .alt-card:hover { border-color: var(--sage); background: var(--sage-light); transform: translateX(3px); }
+  .alt-card.selected { border-color: var(--sage); background: var(--sage-light); box-shadow: 0 0 0 3px rgba(107,143,113,0.15); }
+  .alt-card.selected::after {
+    content: '✓'; position: absolute; right: 0;
+  }
+  .alt-emoji { font-size: 2rem; flex-shrink: 0; }
+  .alt-info { flex: 1; min-width: 0; }
+  .alt-name { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
+  .alt-detail { font-size: 0.73rem; color: var(--ink-muted); }
+  .alt-price { font-size: 0.82rem; font-weight: 600; color: var(--sage); margin-top: 4px; }
+  .alt-tag {
+    font-size: 0.64rem; font-weight: 700; padding: 2px 8px;
+    border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0;
+  }
+  .alt-tag.cheaper { background: #E6F4EA; color: #2E7D45; }
+  .alt-tag.organic { background: var(--gold-light); color: var(--gold); }
+  .alt-tag.popular { background: var(--terracotta-light); color: var(--terracotta); }
+  .selected-check {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--sage); color: white;
+    display: none; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+  }
+  .alt-card.selected .selected-check { display: flex; }
+
+  .swap-footer {
+    padding: 16px 22px 24px;
+    border-top: 1px solid var(--border); flex-shrink: 0;
+  }
+  .swap-confirm-btn {
+    width: 100%; background: var(--sage); color: white;
+    border: none; border-radius: var(--radius-sm); padding: 13px;
+    font-size: 0.9rem; font-weight: 600;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.18s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .swap-confirm-btn:hover { background: #5A7A60; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .swap-confirm-btn:disabled { background: var(--border); color: var(--ink-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+  .swap-cancel-link {
+    display: block; text-align: center; margin-top: 10px;
+    font-size: 0.8rem; color: var(--ink-muted); cursor: pointer;
+    background: none; border: none; font-family: 'DM Sans', sans-serif; width: 100%;
+  }
+  .swap-cancel-link:hover { color: var(--ink); }
+
+  /* ─── SHARE MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(28,26,22,0.45);
+    z-index: 400; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--warm-white); border-radius: var(--radius);
+    padding: 28px 32px; width: 360px; box-shadow: var(--shadow-lg);
+    transform: translateY(12px) scale(0.97); transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+  .modal-sub { font-size: 0.82rem; color: var(--ink-muted); margin-bottom: 20px; }
+  .share-link-row { display: flex; gap: 8px; }
+  .share-link-input {
+    flex: 1; padding: 9px 13px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; background: var(--cream); color: var(--ink-muted); outline: none;
+  }
+  .copy-btn {
+    background: var(--sage); color: white; border: none;
+    border-radius: var(--radius-sm); padding: 9px 16px;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: background 0.15s;
+  }
+  .copy-btn:hover { background: #5A7A60; }
+  .modal-close {
+    display: block; margin-top: 18px; text-align: center;
+    font-size: 0.82rem; color: var(--ink-muted); cursor: pointer;
+    background: none; border: none; font-family: 'DM Sans', sans-serif; width: 100%;
+  }
+
+  /* ─── BASKET TOAST ─── */
+  .basket-toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--ink); color: white; border-radius: var(--radius);
+    padding: 14px 20px; display: flex; align-items: center; gap: 14px;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 500; min-width: 280px;
+  }
+  .basket-toast.show { transform: translateY(0); opacity: 1; }
+  .toast-icon { font-size: 1.3rem; }
+  .toast-text { flex: 1; }
+  .toast-title { font-size: 0.85rem; font-weight: 600; }
+  .toast-sub { font-size: 0.75rem; opacity: 0.7; margin-top: 1px; }
+  .toast-action {
+    background: var(--sage); color: white; border: none;
+    border-radius: 6px; padding: 6px 12px; font-size: 0.78rem;
+    font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; }
+    .panel-left { position: relative; height: auto; }
+    .swap-sidebar { width: 92vw; border-radius: var(--radius) 0 0 var(--radius); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ─── LEFT PANEL ─── -->
+  <aside class="panel-left">
+
+    <div class="logo-area">
+      <div class="logo">Quick <span>List</span> <sup style="font-size:0.45em;font-weight:600;color:var(--ink-muted);font-family:'DM Sans',sans-serif;letter-spacing:0.05em;vertical-align:super">BETA</sup></div>
+      <div class="tagline">Making your shop a little easier</div>
+    </div>
+
+    <div class="prefs-area">
+      <div class="collapsible-header" onclick="togglePanel(this)">
+        <div class="section-label" style="margin-bottom:0">Dietary Preferences</div>
+        <svg class="collapse-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="collapsible-body">
+        <div class="pref-chips">
+          <button class="chip" onclick="toggleChip(this)">🌱 Vegan</button>
+          <button class="chip" onclick="toggleChip(this)">🥛 Dairy-free</button>
+          <button class="chip terracotta" onclick="toggleChip(this)">🌾 Gluten-free</button>
+          <button class="chip gold" onclick="toggleChip(this)">🍃 Organic</button>
+          <button class="chip" onclick="toggleChip(this)">🐟 Pescatarian</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-prompts">
+      <div class="collapsible-header" onclick="togglePanel(this)">
+        <div class="section-label" style="margin-bottom:0">Try a quick start</div>
+        <svg class="collapse-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="collapsible-body">
+        <div class="quick-list">
+          <button class="quick-btn" onclick="sendQuick('Weeknight dinners for a family of 4, nothing too complicated')">
+            <span class="qb-icon">🍽️</span> Family dinners
+          </button>
+          <button class="quick-btn" onclick="sendQuick('Healthy meal prep for the week, high protein')">
+            <span class="qb-icon">💪</span> High-protein prep
+          </button>
+          <button class="quick-btn" onclick="sendQuick('Summer BBQ for 10 people, drinks and dessert too')">
+            <span class="qb-icon">🔥</span> BBQ for 10
+          </button>
+          <button class="quick-btn" onclick="sendQuick('Vegetarian date night dinner for 2, something impressive')">
+            <span class="qb-icon">🕯️</span> Date night
+          </button>
+          <button class="quick-btn" onclick="sendQuick('Healthy packed lunches for the week')">
+            <span class="qb-icon">🥗</span> Packed lunches
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <p class="intro-text">Or describe your own in your own words ↓</p>
+      <div class="input-wrap">
+        <textarea id="promptInput"
+          placeholder="e.g. &quot;Weeknight dinners for a family of 4&quot; or &quot;BBQ for 12 people&quot;…"
+          rows="4" maxlength="300"
+          onkeydown="handleKey(event)"
+          oninput="updateCount()"></textarea>
+        <div class="input-actions">
+          <span class="char-count" id="charCount">0 / 300</span>
+          <button class="send-btn" id="sendBtn" onclick="generateList()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2z"/></svg>
+            Generate list
+          </button>
+        </div>
+      </div>
+      <div class="generating-bar" id="generatingBar">
+        <div class="gen-dots"><div class="gen-dot"></div><div class="gen-dot"></div><div class="gen-dot"></div></div>
+        <span id="generatingText">Building your list…</span>
+      </div>
+    </div>
+
+    <div class="saved-panel">
+      <div class="saved-panel-header">
+        <div class="section-label" style="margin-bottom:0">Saved Lists</div>
+        <button class="view-all-link" onclick="viewAllLists()">View all</button>
+      </div>
+      <div class="saved-list" id="savedListContainer">
+        <div class="saved-item" onclick="loadSaved(0)">
+          <div class="saved-item-icon">🛍️</div>
+          <div class="saved-item-info">
+            <div class="saved-item-name">Last week's groceries</div>
+            <div class="saved-item-meta">Mon 17 Mar</div>
+          </div>
+          <div class="saved-item-count">18</div>
+        </div>
+        <div class="saved-item" onclick="loadSaved(1)">
+          <div class="saved-item-icon">🕯️</div>
+          <div class="saved-item-info">
+            <div class="saved-item-name">Date night dinner</div>
+            <div class="saved-item-meta">Fri 7 Mar</div>
+          </div>
+          <div class="saved-item-count">11</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ─── RIGHT PANEL ─── -->
+  <main class="panel-right" id="mainPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-illustration">🛒</div>
+      <div class="empty-title">Your list awaits</div>
+      <div class="empty-sub">Describe what you need on the left and your personalised shopping list will appear here, beautifully organised by category.</div>
+    </div>
+  </main>
+</div>
+
+<!-- ─── SWAP SIDEBAR ─── -->
+<div class="swap-overlay" id="swapOverlay" onclick="handleOverlayClick(event)">
+  <div class="swap-sidebar" id="swapSidebar">
+
+    <div class="swap-header">
+      <div style="flex:1">
+        <div class="swap-header-label">Swapping item</div>
+        <div class="swap-original" id="swapOriginal">
+          <div class="swap-orig-emoji" id="swapOrigEmoji">🍗</div>
+          <div>
+            <div class="swap-orig-name" id="swapOrigName">Item name</div>
+            <div class="swap-orig-detail" id="swapOrigDetail">Detail</div>
+          </div>
+        </div>
+      </div>
+      <button class="swap-close-btn" onclick="closeSwap()">✕</button>
+    </div>
+
+    <div class="swap-body">
+      <div class="swap-reason" id="swapReason">
+        ✦ Here are some alternatives that work well as substitutes.
+      </div>
+      <div class="swap-alts-label">Choose a replacement</div>
+      <div id="altCardsContainer"></div>
+    </div>
+
+    <div class="swap-footer">
+      <button class="swap-confirm-btn" id="swapConfirmBtn" onclick="confirmSwap()" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Confirm swap
+      </button>
+      <button class="swap-cancel-link" onclick="closeSwap()">Keep original</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── SHARE MODAL ─── -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <div class="modal-title">Share this list 🔗</div>
+    <div class="modal-sub">Anyone with the link can view and copy this list.</div>
+    <div class="share-link-row">
+      <input class="share-link-input" id="shareLink" readonly value="pantry.app/list/brunch-4-xk92a">
+      <button class="copy-btn" onclick="copyLink()">Copy</button>
+    </div>
+    <button class="modal-close" onclick="document.getElementById('shareModal').classList.remove('open')">Close</button>
+  </div>
+</div>
+
+<!-- ─── BASKET TOAST ─── -->
+<div class="basket-toast" id="basketToast">
+  <div class="toast-icon">🛒</div>
+  <div class="toast-text">
+    <div class="toast-title" id="toastTitle">Added to basket</div>
+    <div class="toast-sub" id="toastSub">1 item added</div>
+  </div>
+  <button class="toast-action" onclick="viewBasket()">View basket</button>
+</div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────
+const LISTS = {
+  "weeknight family dinners": {
+    title: "Weeknight Family Dinners",
+    servings: "4 people · 5 nights",
+    items: 22,
+    estimatedCost: "£68–84",
+    categories: [
+      { name: "Meat & Fish", icon: "🥩", color: "#C4623A", bg: "#F8EDE8", items: [
+        { name: "Chicken Breasts", detail: "Skinless, free range", emoji: "🍗", price: "£5.50", qty: 6, alts: [
+          { emoji: "🦃", name: "Turkey Breast Mince", detail: "Lean, 500g pack", price: "£4.80", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🐟", name: "Cod Fillets", detail: "Sustainably sourced, 4-pack", price: "£6.20", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🍗", name: "Organic Chicken", detail: "Free range, certified organic", price: "£7.00", tag: "organic", tagLabel: "Organic" },
+        ]},
+        { name: "Minced Beef", detail: "5% fat, 500g pack", emoji: "🥩", price: "£4.20", qty: 2, alts: [
+          { emoji: "🥩", name: "Lamb Mince", detail: "Lean, 500g", price: "£5.00", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🌱", name: "Quorn Mince", detail: "Meat-free, 500g", price: "£3.50", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🐖", name: "Pork Mince", detail: "15% fat, 500g", price: "£3.80", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🥩", name: "Organic Beef Mince", detail: "10% fat, grass-fed", price: "£5.80", tag: "organic", tagLabel: "Organic" },
+        ]},
+        { name: "Salmon Fillets", detail: "Skin on, 4-pack", emoji: "🐟", price: "£7.00", qty: 1, alts: [
+          { emoji: "🐟", name: "Trout Fillets", detail: "4-pack, skin on", price: "£5.50", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🐟", name: "Sea Bass", detail: "2 whole fish, 300g each", price: "£6.80", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🦐", name: "King Prawns", detail: "300g cooked, ready to use", price: "£5.00", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🐟", name: "Organic Salmon", detail: "Skin on, organic certified", price: "£9.00", tag: "organic", tagLabel: "Organic" },
+        ]},
+      ]},
+      { name: "Fresh Produce", icon: "🥦", color: "#6B8F71", bg: "#EAF0EB", items: [
+        { name: "Broccoli", detail: "Large head, ~400g", emoji: "🥦", price: "£0.85", qty: 2, alts: [
+          { emoji: "🥦", name: "Tenderstem Broccoli", detail: "200g bag, tender stems", price: "£1.80", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🥬", name: "Savoy Cabbage", detail: "Whole head ~700g", price: "£0.65", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Cherry Tomatoes", detail: "250g punnet", emoji: "🍅", price: "£1.20", qty: 2, alts: [
+          { emoji: "🍅", name: "Vine Tomatoes", detail: "6 on the vine", price: "£1.00", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🍅", name: "Organic Cherry Toms", detail: "250g, certified organic", price: "£1.80", tag: "organic", tagLabel: "Organic" },
+        ]},
+        { name: "Baby Spinach", detail: "200g bag", emoji: "🥬", price: "£1.50", qty: 1, alts: [
+          { emoji: "🥬", name: "Rocket Leaves", detail: "100g bag, peppery", price: "£1.20", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🥬", name: "Kale", detail: "200g bag, curly", price: "£1.30", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Red Onion", detail: "Pack of 3", emoji: "🧅", price: "£0.75", qty: 1, alts: [
+          { emoji: "🧅", name: "White Onion", detail: "Pack of 4, milder", price: "£0.65", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🧅", name: "Shallots", detail: "Net bag 500g", price: "£1.10", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Garlic", detail: "Whole bulb", emoji: "🧄", price: "£0.60", qty: 2, alts: [
+          { emoji: "🧄", name: "Garlic Paste", detail: "Jar 90g, easy squeeze", price: "£1.20", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Lemon", detail: "Unwaxed, 4 pack", emoji: "🍋", price: "£0.90", qty: 1, alts: [
+          { emoji: "🍋", name: "Organic Lemons", detail: "Unwaxed, 4 pack", price: "£1.50", tag: "organic", tagLabel: "Organic" },
+          { emoji: "🍊", name: "Lime", detail: "4 pack, zesty", price: "£0.85", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+      ]},
+      { name: "Dairy & Eggs", icon: "🥚", color: "#C9983A", bg: "#FBF4E4", items: [
+        { name: "Free Range Eggs", detail: "12 large", emoji: "🥚", price: "£2.80", qty: 1, alts: [
+          { emoji: "🥚", name: "Organic Eggs", detail: "12 large, certified organic", price: "£3.60", tag: "organic", tagLabel: "Organic" },
+          { emoji: "🥚", name: "Medium Eggs", detail: "15 pack, free range", price: "£2.90", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Mature Cheddar", detail: "400g block", emoji: "🧀", price: "£3.60", qty: 1, alts: [
+          { emoji: "🧀", name: "Mild Cheddar", detail: "400g, gentler taste", price: "£3.00", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🧀", name: "Vegan Cheddar", detail: "200g, plant-based", price: "£3.80", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Greek Yoghurt", detail: "500g, full fat", emoji: "🍶", price: "£1.85", qty: 1, alts: [
+          { emoji: "🥛", name: "Oat Yoghurt", detail: "500g, dairy-free", price: "£2.20", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🍶", name: "Skyr", detail: "450g, high protein", price: "£1.90", tag: "popular", tagLabel: "Popular" },
+        ]},
+      ]},
+      { name: "Pantry & Dry Goods", icon: "🫙", color: "#7B6B9B", bg: "#EDE8F5", items: [
+        { name: "Basmati Rice", detail: "2kg bag", emoji: "🍚", price: "£2.40", qty: 1, alts: [
+          { emoji: "🍚", name: "Brown Basmati", detail: "2kg, wholegrain", price: "£2.80", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🌾", name: "Quinoa", detail: "500g, high protein", price: "£2.80", tag: "organic", tagLabel: "Organic" },
+        ]},
+        { name: "Pasta Penne", detail: "500g", emoji: "🍝", price: "£1.00", qty: 2, alts: [
+          { emoji: "🍝", name: "Gluten-Free Penne", detail: "500g, corn & rice", price: "£2.00", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🍝", name: "Fusilli", detail: "500g, spirals hold sauce", price: "£0.95", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Tinned Tomatoes", detail: "400g × 4", emoji: "🥫", price: "£2.00", qty: 1, alts: [
+          { emoji: "🥫", name: "Chopped Tomatoes", detail: "400g × 4, finely chopped", price: "£1.80", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Olive Oil", detail: "Extra virgin, 500ml", emoji: "🫒", price: "£3.80", qty: 1, alts: [
+          { emoji: "🫒", name: "Organic Olive Oil", detail: "Extra virgin, 500ml", price: "£5.20", tag: "organic", tagLabel: "Organic" },
+          { emoji: "🧴", name: "Rapeseed Oil", detail: "1L, British cold-pressed", price: "£2.50", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+      ]},
+      { name: "Bakery & Bread", icon: "🍞", color: "#8B6914", bg: "#F5EDD4", items: [
+        { name: "Sourdough Loaf", detail: "800g, sliced", emoji: "🍞", price: "£1.80", qty: 1, alts: [
+          { emoji: "🍞", name: "Wholemeal Loaf", detail: "800g, sliced", price: "£1.30", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🍞", name: "Gluten-Free Loaf", detail: "600g, seeded", price: "£2.80", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Wholemeal Wraps", detail: "8 pack", emoji: "🫓", price: "£1.50", qty: 1, alts: [
+          { emoji: "🫓", name: "Corn Tortillas", detail: "8 pack, gluten-free", price: "£1.80", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🫓", name: "White Flour Wraps", detail: "8 pack, soft", price: "£1.20", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+      ]},
+    ]
+  },
+  "healthy meal prep for the week, high protein": {
+    title: "High-Protein Meal Prep",
+    servings: "1 person · 7 days",
+    items: 18,
+    estimatedCost: "£52–61",
+    categories: [
+      { name: "Protein", icon: "💪", color: "#C4623A", bg: "#F8EDE8", items: [
+        { name: "Chicken Breast", detail: "1kg pack, skinless", emoji: "🍗", price: "£6.50", qty: 2, alts: [
+          { emoji: "🦃", name: "Turkey Breast Strips", detail: "500g, lean", price: "£5.20", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🐟", name: "Tilapia Fillets", detail: "500g, mild white fish", price: "£5.80", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Eggs", detail: "15 large, free range", emoji: "🥚", price: "£3.50", qty: 1, alts: [
+          { emoji: "🥚", name: "Organic Eggs", detail: "12 large, organic", price: "£3.80", tag: "organic", tagLabel: "Organic" },
+        ]},
+        { name: "Tuna Chunks", detail: "Brine, 4×160g", emoji: "🐟", price: "£3.20", qty: 2, alts: [
+          { emoji: "🐟", name: "Tuna in Spring Water", detail: "4×160g, lower calories", price: "£3.50", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🫘", name: "Edamame Beans", detail: "500g frozen, plant protein", price: "£2.20", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Greek Yoghurt", detail: "1kg, 0% fat", emoji: "🥛", price: "£2.20", qty: 2, alts: [
+          { emoji: "🥛", name: "Skyr Natural", detail: "1kg, very high protein", price: "£2.50", tag: "popular", tagLabel: "Popular" },
+        ]},
+      ]},
+      { name: "Grains & Legumes", icon: "🌾", color: "#8B6914", bg: "#F5EDD4", items: [
+        { name: "Quinoa", detail: "500g", emoji: "🌾", price: "£2.80", qty: 1, alts: [
+          { emoji: "🌾", name: "Organic Quinoa", detail: "500g, tri-colour", price: "£3.50", tag: "organic", tagLabel: "Organic" },
+          { emoji: "🍚", name: "Brown Rice", detail: "1kg, wholegrain", price: "£1.60", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Brown Rice", detail: "1kg", emoji: "🍚", price: "£1.60", qty: 1, alts: [
+          { emoji: "🍚", name: "Wild Rice Mix", detail: "500g, nutty flavour", price: "£2.20", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Chickpeas", detail: "400g tin × 2", emoji: "🫘", price: "£1.80", qty: 1, alts: [
+          { emoji: "🫘", name: "Dried Chickpeas", detail: "500g, soak & cook", price: "£1.00", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🫘", name: "Butter Beans", detail: "400g tin, creamy", price: "£0.85", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Black Beans", detail: "400g tin", emoji: "🫘", price: "£0.85", qty: 2, alts: [
+          { emoji: "🫘", name: "Kidney Beans", detail: "400g tin, hearty", price: "£0.75", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+      ]},
+      { name: "Vegetables", icon: "🥦", color: "#6B8F71", bg: "#EAF0EB", items: [
+        { name: "Sweet Potato", detail: "1kg bag", emoji: "🍠", price: "£1.50", qty: 1, alts: [
+          { emoji: "🥔", name: "Baby New Potatoes", detail: "1kg bag, ready to boil", price: "£1.20", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🥕", name: "Butternut Squash", detail: "Whole, ~900g", price: "£1.40", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Broccoli", detail: "Two heads", emoji: "🥦", price: "£1.60", qty: 1, alts: [
+          { emoji: "🥦", name: "Frozen Broccoli", detail: "1kg bag, convenient", price: "£1.00", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Mixed Peppers", detail: "3 pack", emoji: "🫑", price: "£1.40", qty: 2, alts: [
+          { emoji: "🫑", name: "Frozen Sliced Peppers", detail: "750g bag, pre-sliced", price: "£1.80", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Kale", detail: "200g bag", emoji: "🥬", price: "£1.20", qty: 1, alts: [
+          { emoji: "🥬", name: "Cavolo Nero", detail: "200g, Italian black kale", price: "£1.50", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🥬", name: "Spinach", detail: "200g bag, mild", price: "£1.50", tag: "popular", tagLabel: "Popular" },
+        ]},
+      ]},
+    ]
+  },
+  "summer bbq for 10 people, drinks and dessert too": {
+    title: "Summer BBQ for 10",
+    servings: "10 people · outdoor party",
+    items: 26,
+    estimatedCost: "£120–145",
+    categories: [
+      { name: "Meat & Grilling", icon: "🔥", color: "#C4623A", bg: "#F8EDE8", items: [
+        { name: "Beef Burgers", detail: "8 pack, 100% beef", emoji: "🍔", price: "£5.50", qty: 2, alts: [
+          { emoji: "🍔", name: "Gourmet Smash Burgers", detail: "6 pack, aged beef", price: "£7.50", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🌱", name: "Beyond Burgers", detail: "4 pack, plant-based", price: "£4.50", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Pork Sausages", detail: "12 pack, thick cut", emoji: "🌭", price: "£4.20", qty: 2, alts: [
+          { emoji: "🌭", name: "Chicken Sausages", detail: "12 pack, leaner", price: "£3.80", tag: "cheaper", tagLabel: "Cheaper" },
+          { emoji: "🌭", name: "Merguez Sausages", detail: "8 pack, spiced lamb", price: "£5.00", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Chicken Wings", detail: "1kg bag, marinated", emoji: "🍗", price: "£4.80", qty: 2, alts: [
+          { emoji: "🍗", name: "Chicken Thighs", detail: "1kg, bone-in skin-on", price: "£4.00", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Halloumi", detail: "250g block × 2", emoji: "🧀", price: "£2.80", qty: 2, alts: [
+          { emoji: "🧀", name: "Vegan Halloumi", detail: "225g, plant-based", price: "£3.20", tag: "popular", tagLabel: "Popular" },
+        ]},
+      ]},
+      { name: "Fresh Salads & Sides", icon: "🥗", color: "#6B8F71", bg: "#EAF0EB", items: [
+        { name: "Little Gem Lettuce", detail: "2 heads", emoji: "🥬", price: "£1.00", qty: 2, alts: [
+          { emoji: "🥬", name: "Romaine Lettuce", detail: "2 heads, crunchy", price: "£0.85", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Corn on the Cob", detail: "4 pack", emoji: "🌽", price: "£1.80", qty: 2, alts: [
+          { emoji: "🌽", name: "Mini Corn", detail: "200g bag, baby corn", price: "£1.50", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Potato Salad", detail: "Ready-made 1kg", emoji: "🥔", price: "£2.50", qty: 1, alts: [
+          { emoji: "🥔", name: "New Potatoes", detail: "1kg, make your own", price: "£1.20", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Coleslaw", detail: "Large tub 700g", emoji: "🥗", price: "£2.20", qty: 1, alts: [
+          { emoji: "🥗", name: "Organic Coleslaw", detail: "500g, organic veg", price: "£3.00", tag: "organic", tagLabel: "Organic" },
+        ]},
+      ]},
+      { name: "Bread & Condiments", icon: "🍔", color: "#8B6914", bg: "#F5EDD4", items: [
+        { name: "Brioche Buns", detail: "8 pack", emoji: "🍞", price: "£2.20", qty: 2, alts: [
+          { emoji: "🍞", name: "Gluten-Free Buns", detail: "4 pack, soft rolls", price: "£2.80", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🍞", name: "Classic White Baps", detail: "8 pack, budget", price: "£1.30", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Ketchup", detail: "570g squeeze bottle", emoji: "🍅", price: "£1.50", qty: 1, alts: [
+          { emoji: "🍅", name: "Organic Ketchup", detail: "480g, no added sugar", price: "£2.80", tag: "organic", tagLabel: "Organic" },
+        ]},
+        { name: "Mustard", detail: "Wholegrain, 185g", emoji: "🫙", price: "£1.80", qty: 1, alts: [
+          { emoji: "🫙", name: "American Yellow Mustard", detail: "250g, classic BBQ", price: "£1.20", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+      ]},
+      { name: "Drinks", icon: "🍹", color: "#2B7BA4", bg: "#E4F2FA", items: [
+        { name: "Lager Beer", detail: "20 × 330ml cans", emoji: "🍺", price: "£12.00", qty: 1, alts: [
+          { emoji: "🍺", name: "Craft IPA Mixed Case", detail: "12 × 330ml cans", price: "£14.00", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🍺", name: "Alcohol-Free Lager", detail: "20 × 330ml cans", price: "£10.00", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Rosé Wine", detail: "2 bottles 75cl", emoji: "🍷", price: "£9.00", qty: 2, alts: [
+          { emoji: "🍷", name: "Organic Rosé", detail: "75cl, Provence style", price: "£12.00", tag: "organic", tagLabel: "Organic" },
+        ]},
+        { name: "Sparkling Water", detail: "6 × 500ml", emoji: "💧", price: "£2.00", qty: 2, alts: [
+          { emoji: "💧", name: "Flavoured Sparkling Water", detail: "6-pack, lemon & lime", price: "£2.50", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Lemonade", detail: "2L bottle", emoji: "🍋", price: "£1.30", qty: 2, alts: [
+          { emoji: "🍋", name: "Elderflower Pressé", detail: "1L, premium cordial", price: "£2.80", tag: "popular", tagLabel: "Popular" },
+        ]},
+      ]},
+      { name: "Dessert", icon: "🍦", color: "#B05B8A", bg: "#F5E8F1", items: [
+        { name: "Strawberries", detail: "400g punnet × 2", emoji: "🍓", price: "£2.50", qty: 2, alts: [
+          { emoji: "🍓", name: "Organic Strawberries", detail: "400g, organic farm", price: "£3.50", tag: "organic", tagLabel: "Organic" },
+          { emoji: "🍒", name: "Mixed Summer Berries", detail: "400g mix, frozen", price: "£2.00", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Cream", detail: "Double, 300ml", emoji: "🥛", price: "£1.50", qty: 2, alts: [
+          { emoji: "🥥", name: "Coconut Cream", detail: "400ml tin, dairy-free", price: "£1.30", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+        { name: "Vanilla Ice Cream", detail: "1L tub", emoji: "🍦", price: "£3.50", qty: 1, alts: [
+          { emoji: "🍦", name: "Oat Milk Ice Cream", detail: "500ml, dairy-free vanilla", price: "£4.00", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🍦", name: "Luxury Madagascan Vanilla", detail: "1L, premium tub", price: "£5.50", tag: "popular", tagLabel: "Popular" },
+        ]},
+        { name: "Brownies", detail: "12-pack", emoji: "🍫", price: "£3.00", qty: 1, alts: [
+          { emoji: "🍫", name: "Vegan Brownies", detail: "9-pack, plant-based", price: "£3.80", tag: "popular", tagLabel: "Popular" },
+          { emoji: "🍪", name: "Assorted Cookies", detail: "18-pack, crowd pleaser", price: "£2.50", tag: "cheaper", tagLabel: "Cheaper" },
+        ]},
+      ]},
+    ]
+  }
+};
+
+// ─── STATE ─────────────────────────────────────────────
+let currentList = null;
+let basketItems = new Set();
+let swapTargetId = null;
+let selectedAltIndex = null;
+let swapTargetItem = null;
+
+// ─── HELPERS ───────────────────────────────────────────
+function toggleChip(el) { el.classList.toggle('active'); }
+
+function togglePanel(header) {
+  const body = header.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  header.classList.toggle('open', !isOpen);
+}
+
+function updateCount() {
+  const t = document.getElementById('promptInput');
+  document.getElementById('charCount').textContent = `${t.value.length} / 300`;
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); generateList(); }
+}
+
+function sendQuick(text) {
+  document.getElementById('promptInput').value = text;
+  updateCount();
+  generateList();
+}
+
+function showToast(title, sub) {
+  const toast = document.getElementById('basketToast');
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastSub').textContent = sub;
+  toast.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function viewBasket() {
+  showToast('🛒 Basket', `${basketItems.size} items ready for checkout`);
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(document.getElementById('shareLink').value).catch(() => {});
+  const btn = document.querySelector('.copy-btn');
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 2000);
+}
+
+// ─── GENERATE ─────────────────────────────────────────
+function generateList() {
+  const input = document.getElementById('promptInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const sendBtn = document.getElementById('sendBtn');
+  sendBtn.disabled = true;
+  const genBar = document.getElementById('generatingBar');
+  genBar.classList.add('visible');
+  document.getElementById('generatingText').textContent =
+    `Building your list for "${text.slice(0, 38)}${text.length > 38 ? '…' : ''}"`;
+
+  const key = Object.keys(LISTS).find(k =>
+    text.toLowerCase().includes(k.split(' ')[0]) ||
+    text.toLowerCase().includes(k.split(' ')[1] || '')
+  ) || Object.keys(LISTS)[0];
+
+  setTimeout(() => {
+    sendBtn.disabled = false;
+    genBar.classList.remove('visible');
+    input.value = '';
+    updateCount();
+    basketItems.clear();
+    currentList = LISTS[key];
+    renderList(currentList);
+  }, 1600);
+}
+
+// ─── RENDER ────────────────────────────────────────────
+function renderList(data) {
+  const panel = document.getElementById('mainPanel');
+  panel.innerHTML = `
+    <div class="top-bar" style="animation:slideUp .3s ease both">
+      <div>
+        <div class="list-title">${data.title}</div>
+        <div class="list-meta">
+          <span>${data.items} items</span>
+          <span class="meta-pill">✦ ${data.servings}</span>
+          <span class="meta-pill gold">Est. ${data.estimatedCost}</span>
+        </div>
+      </div>
+      <div class="action-bar">
+        <button class="btn btn-outline" onclick="saveList()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+          Save list
+        </button>
+        <button class="btn btn-outline" onclick="document.getElementById('shareModal').classList.add('open')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+        <button class="btn btn-primary" onclick="addAllToBasket()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+          Add all to basket
+        </button>
+      </div>
+    </div>
+
+    <div class="estimate-bar" style="animation:slideUp .3s ease .08s both">
+      <div class="est-col"><div class="est-num" id="itemsCount">${data.items}</div><div class="est-label">Items</div></div>
+      <div class="est-divider"></div>
+      <div class="est-col"><div class="est-num">${data.categories.length}</div><div class="est-label">Categories</div></div>
+      <div class="est-divider"></div>
+      <div class="est-col"><div class="est-num">${data.estimatedCost}</div><div class="est-label">Est. cost</div></div>
+      <div class="est-divider"></div>
+      <div class="est-col"><div class="est-num" id="basketCount">0</div><div class="est-label">In basket</div></div>
+    </div>
+
+    <div id="categoriesArea">
+      ${data.categories.map((cat, ci) => `
+        <div class="category-section" style="animation:fadeIn .35s ease ${ci * 70}ms both">
+          <div class="cat-header">
+            <div class="cat-icon" style="background:${cat.bg};color:${cat.color}">${cat.icon}</div>
+            <div class="cat-name">${cat.name}</div>
+            <div class="cat-count">${cat.items.length} items</div>
+          </div>
+          <div class="product-grid">
+            ${cat.items.map((item, ii) => `
+              <div class="product-tile" id="tile-${ci}-${ii}" style="animation-delay:${(ci*6+ii)*35}ms">
+                <button class="tile-remove-btn" onclick="removeItem('${ci}-${ii}')" title="Remove item">✕</button>
+                <span class="tile-emoji">${item.emoji}</span>
+                <div class="tile-name">${item.name}</div>
+                <div class="tile-detail">${item.detail}</div>
+                <div class="tile-price">${item.price}</div>
+                <div class="tile-qty-row">
+                  <button class="qty-btn" onclick="changeQty('${ci}-${ii}',-1)">−</button>
+                  <span class="qty-num" id="qty-${ci}-${ii}">${item.qty}</span>
+                  <button class="qty-btn" onclick="changeQty('${ci}-${ii}',1)">+</button>
+                </div>
+                <button class="tile-add-btn" onclick="toggleItem('${ci}-${ii}')">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+                  Add to basket
+                </button>
+                ${item.alts && item.alts.length ? `<button class="tile-swap-btn" onclick="openSwap('${ci}','${ii}')">⇄ swap</button>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ─── INTERACTIONS ──────────────────────────────────────
+function toggleItem(id) {
+  const tile = document.getElementById(`tile-${id}`);
+  if (basketItems.has(id)) {
+    basketItems.delete(id);
+    tile.classList.remove('in-basket');
+  } else {
+    basketItems.add(id);
+    tile.classList.add('in-basket');
+    showToast('Added to basket! 🛒', `${basketItems.size} item${basketItems.size !== 1 ? 's' : ''} in basket`);
+  }
+  const bc = document.getElementById('basketCount');
+  if (bc) bc.textContent = basketItems.size;
+}
+
+function changeQty(id, delta) {
+  const span = document.getElementById(`qty-${id}`);
+  if (!span) return;
+  let val = Math.max(0, parseInt(span.textContent) + delta);
+  span.textContent = val;
+  document.getElementById(`tile-${id}`).style.opacity = val === 0 ? '0.38' : '1';
+}
+
+function removeItem(id) {
+  const tile = document.getElementById(`tile-${id}`);
+  if (!tile) return;
+
+  // Animate out
+  tile.classList.add('removing');
+
+  setTimeout(() => {
+    tile.remove();
+    basketItems.delete(id);
+
+    // Update basket count
+    const bc = document.getElementById('basketCount');
+    if (bc) bc.textContent = basketItems.size;
+
+    // Update top-level items count — count only tiles still in the DOM
+    const itemsEl = document.getElementById('itemsCount');
+    if (itemsEl) {
+      const totalTiles = document.querySelectorAll('#categoriesArea .product-tile').length;
+      itemsEl.textContent = totalTiles;
+    }
+
+    // Update category item count badge
+    const grid = tile.closest('.product-grid');
+    if (grid) {
+      const remaining = grid.querySelectorAll('.product-tile').length;
+      const badge = grid.closest('.category-section')?.querySelector('.cat-count');
+      if (badge) badge.textContent = `${remaining} item${remaining !== 1 ? 's' : ''}`;
+
+      // Hide the whole category section if no tiles remain
+      if (remaining === 0) {
+        const section = grid.closest('.category-section');
+        if (section) {
+          section.style.transition = 'opacity 0.2s ease';
+          section.style.opacity = '0';
+          setTimeout(() => section.remove(), 200);
+        }
+      }
+    }
+
+    showToast('Item removed', 'Tap "Generate list" to start fresh');
+  }, 270);
+}
+
+function addAllToBasket() {
+  if (!currentList) return;
+  currentList.categories.forEach((cat, ci) => {
+    cat.items.forEach((_, ii) => {
+      const id = `${ci}-${ii}`;
+      basketItems.add(id);
+      const tile = document.getElementById(`tile-${id}`);
+      if (tile) tile.classList.add('in-basket');
+    });
+  });
+  const bc = document.getElementById('basketCount');
+  if (bc) bc.textContent = basketItems.size;
+  showToast(`All ${basketItems.size} items added! 🛒`, `Ready to checkout · Est. ${currentList.estimatedCost}`);
+}
+
+function saveList() {
+  if (!currentList) return;
+  const container = document.getElementById('savedListContainer');
+  const newItem = document.createElement('div');
+  newItem.className = 'saved-item';
+  newItem.style.animation = 'slideUp 0.25s ease';
+  newItem.innerHTML = `
+    <div class="saved-item-icon">📋</div>
+    <div class="saved-item-info">
+      <div class="saved-item-name">${currentList.title}</div>
+      <div class="saved-item-meta">Today</div>
+    </div>
+    <div class="saved-item-count">${currentList.items}</div>
+  `;
+  container.prepend(newItem);
+  showToast('List saved! 💾', `"${currentList.title}" saved`);
+}
+
+function loadSaved(i) {
+  const keys = Object.keys(LISTS);
+  currentList = LISTS[keys[i % keys.length]];
+  basketItems.clear();
+  renderList(currentList);
+}
+
+function viewAllLists() {
+  // Show all saved lists as an expanded overlay on the saved panel
+  const allLists = [
+    { emoji: '🛍️', name: "Last week's groceries", date: 'Mon 17 Mar', count: 18 },
+    { emoji: '🕯️', name: 'Date night dinner', date: 'Fri 7 Mar', count: 11 },
+    { emoji: '🥗', name: 'Healthy lunches', date: 'Mon 3 Mar', count: 9 },
+    { emoji: '🔥', name: 'BBQ – bank holiday', date: 'Sun 25 Feb', count: 24 },
+    { emoji: '🎂', name: "Mia's birthday party", date: 'Sat 17 Feb', count: 31 },
+  ];
+  const container = document.getElementById('savedListContainer');
+  container.innerHTML = allLists.map((s, i) => `
+    <div class="saved-item" onclick="loadSaved(${i})" style="animation:slideUp 0.2s ease ${i*40}ms both">
+      <div class="saved-item-icon">${s.emoji}</div>
+      <div class="saved-item-info">
+        <div class="saved-item-name">${s.name}</div>
+        <div class="saved-item-meta">${s.date}</div>
+      </div>
+      <div class="saved-item-count">${s.count}</div>
+    </div>
+  `).join('');
+  // Replace "view all" with "collapse"
+  const btn = document.querySelector('.view-all-link');
+  if (btn) { btn.textContent = 'Collapse'; btn.onclick = collapseLists; }
+}
+
+function collapseLists() {
+  const container = document.getElementById('savedListContainer');
+  container.innerHTML = `
+    <div class="saved-item" onclick="loadSaved(0)">
+      <div class="saved-item-icon">🛍️</div>
+      <div class="saved-item-info"><div class="saved-item-name">Last week's groceries</div><div class="saved-item-meta">Mon 17 Mar</div></div>
+      <div class="saved-item-count">18</div>
+    </div>
+    <div class="saved-item" onclick="loadSaved(1)">
+      <div class="saved-item-icon">🕯️</div>
+      <div class="saved-item-info"><div class="saved-item-name">Date night dinner</div><div class="saved-item-meta">Fri 7 Mar</div></div>
+      <div class="saved-item-count">11</div>
+    </div>
+  `;
+  const btn = document.querySelector('.view-all-link');
+  if (btn) { btn.textContent = 'View all'; btn.onclick = viewAllLists; }
+}
+
+// ─── SWAP SIDEBAR ──────────────────────────────────────
+function openSwap(ciStr, iiStr) {
+  const ci = parseInt(ciStr), ii = parseInt(iiStr);
+  const item = currentList.categories[ci].items[ii];
+  swapTargetId = `${ci}-${ii}`;
+  swapTargetItem = item;
+  selectedAltIndex = null;
+
+  document.getElementById('swapOrigEmoji').textContent = item.emoji;
+  document.getElementById('swapOrigName').textContent = item.name;
+  document.getElementById('swapOrigDetail').textContent = item.detail;
+  const alts = item.alts.slice(0, 4);
+  window._currentAlts = alts;
+  document.getElementById('swapReason').textContent =
+    `✦ ${alts.length} alternative${alts.length !== 1 ? 's' : ''} available for ${item.name}. Select one below to swap it out.`;
+
+  document.getElementById('altCardsContainer').innerHTML = alts.map((alt, idx) => `
+    <div class="alt-card" id="alt-${idx}" onclick="selectAlt(${idx})">
+      <div class="alt-emoji">${alt.emoji}</div>
+      <div class="alt-info">
+        <div class="alt-name">${alt.name}</div>
+        <div class="alt-detail">${alt.detail}</div>
+        <div class="alt-price">${alt.price}</div>
+      </div>
+      <span class="alt-tag ${alt.tag}">${alt.tagLabel}</span>
+      <div class="selected-check">✓</div>
+    </div>
+  `).join('');
+
+  document.getElementById('swapConfirmBtn').disabled = true;
+  document.getElementById('swapOverlay').classList.add('open');
+}
+
+function selectAlt(idx) {
+  document.querySelectorAll('.alt-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(`alt-${idx}`).classList.add('selected');
+  selectedAltIndex = idx;
+  document.getElementById('swapConfirmBtn').disabled = false;
+}
+
+function confirmSwap() {
+  if (selectedAltIndex === null || !swapTargetItem) return;
+  const alt = (window._currentAlts || swapTargetItem.alts)[selectedAltIndex];
+  const tile = document.getElementById(`tile-${swapTargetId}`);
+  if (tile) {
+    tile.querySelector('.tile-emoji').textContent = alt.emoji;
+    tile.querySelector('.tile-name').textContent = alt.name;
+    tile.querySelector('.tile-detail').textContent = alt.detail;
+    tile.querySelector('.tile-price').textContent = alt.price;
+    tile.style.animation = 'none';
+    tile.offsetHeight;
+    tile.style.animation = 'fadeIn 0.3s ease both';
+  }
+  closeSwap();
+  showToast(`Item swapped ⇄`, `Now showing: ${alt.name}`);
+}
+
+function closeSwap() {
+  document.getElementById('swapOverlay').classList.remove('open');
+  swapTargetId = null; selectedAltIndex = null; swapTargetItem = null;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('swapOverlay')) closeSwap();
+}
+</script>
+</body>
+</html>
